@@ -12,7 +12,16 @@ enum SQUEUE_ERRORS
     SQUEUE_ERR_INIT,
 };
 
-int SQueue_Init(uint8_t* queue, void* buffer, uint8_t element_size, uint8_t element_count);
-int SQueue_Put(uint8_t* queue, void* element);
+typedef struct sQueue_tag
+{
+    uint8_t*  head;
+    uint8_t*  tail;
+    uint8_t*  base;
+    uint16_t  elements;
+    uint8_t   element_size;
+} sQueue_t;
+
+int SQueue_Init(sQueue_t* queue, void* buffer, uint8_t element_size, uint16_t element_count);
+int SQueue_Put(sQueue_t* queue, void* element);
 
 #endif  // __SFIFO_H_
