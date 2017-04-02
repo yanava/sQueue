@@ -9,7 +9,7 @@
 
 enum SQUEUE_ERRORS
 {
-    SQUEUE_ERR_INIT,
+    SQUEUE_ERR_INVALID_PAR = SQUEUE_ERROR_MIN,
 };
 
 typedef struct sQueue_tag
@@ -23,5 +23,7 @@ typedef struct sQueue_tag
 
 int SQueue_Init(sQueue_t* queue, void* buffer, uint8_t element_size, uint16_t element_count);
 int SQueue_Put(sQueue_t* queue, void* element);
+int SQueue_Get(sQueue_t* queue, void* element);
+
 
 #endif  // __SFIFO_H_
