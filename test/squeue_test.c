@@ -20,15 +20,16 @@ uint32_t    element;
 
 TEST_GROUP_RUNNER(SQUEUE)
 {
-  RUN_TEST_CASE(SQUEUE, SQueue_InitReturnsNoErrorsWithSaneParameters );
-  RUN_TEST_CASE(SQUEUE, SQueue_InitReturnsErrorWithInvalidParameters );
-  RUN_TEST_CASE(SQUEUE, SQueue_PutReturnsNoErrorsWithSaneParameters  );
-  RUN_TEST_CASE(SQUEUE, SQueue_InitSetTheParametersCorrectly         );
-  RUN_TEST_CASE(SQUEUE, SQueue_PutReturnsErrorWithInvalidParameters  );
-  RUN_TEST_CASE(SQUEUE, SQueue_PutThenGetElementBack);
-  RUN_TEST_CASE(SQUEUE, SQueue_PutTwoAndGetTwoElementsBack);
-  RUN_TEST_CASE(SQUEUE, SQueue_HeadWrapsAround);
-  RUN_TEST_CASE(SQUEUE, SQueue_TailWrapsAround);
+  RUN_TEST_CASE(SQUEUE, InitReturnsNoErrorsWithSaneParameters );
+  RUN_TEST_CASE(SQUEUE, InitReturnsErrorWithInvalidParameters );
+  RUN_TEST_CASE(SQUEUE, PutReturnsNoErrorsWithSaneParameters  );
+  RUN_TEST_CASE(SQUEUE, InitSetTheParametersCorrectly         );
+  RUN_TEST_CASE(SQUEUE, PutReturnsErrorWithInvalidParameters  );
+  RUN_TEST_CASE(SQUEUE, PutThenGetElementBack);
+  RUN_TEST_CASE(SQUEUE, PutTwoAndGetTwoElementsBack);
+  RUN_TEST_CASE(SQUEUE, HeadWrapsAround);
+  RUN_TEST_CASE(SQUEUE, TailWrapsAround);
+  RUN_TEST_CASE(SQUEUE, ReturnsOverflowWhenQueueIsFull);
 }
 
 TEST_SETUP(SQUEUE)
@@ -79,7 +80,7 @@ TEST(SQUEUE, PutReturnsErrorWithInvalidParameters)
     TEST_ASSERT_EQUAL(SQUEUE_ERR_INVALID_PAR,SQueue_Put(&queue, 0                ));    
 }
 
-TEST(SQUEUE, SQueue_PutThenGetElementBack)
+TEST(SQUEUE, PutThenGetElementBack)
 {
     uint32_t recovered = 0;
     SQueue_Put(&queue, (void *) &element);
@@ -127,12 +128,17 @@ TEST(SQUEUE, TailWrapsAround)
         SQueue_Get(&queue, (void *) &recovered);
     }
        
-
     TEST_ASSERT_EQUAL_PTR (buffer, queue.tail);
 }
 
 TEST(SQUEUE, ReturnsOverflowWhenQueueIsFull)
 {
+    int i = 0;
     
+    for(i = 0; i < BUFFER_ELEMENTS; i++)
+       SQueue_Put(&queue, (void *) &element);
+
+    TEST_ASSERT_EQUAL_UINT16(0,queue.available);       
+    TEST_ASSERT_EQUAL(SQUEUE_OVERFLOW, SQueue_Put(&queue, (void *) &element));
 }
 

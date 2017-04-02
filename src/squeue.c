@@ -13,6 +13,7 @@ int SQueue_Init(sQueue_t* queue, void* buffer , uint8_t element_size, uint16_t e
     queue->base = (uint8_t *) buffer;
     queue->element_size = element_size;
     queue->elements     = element_count;
+    queue->available    = element_count;
     
 	return 0;
 }
@@ -21,6 +22,9 @@ int SQueue_Put(sQueue_t* queue, void* element)
 {
     if(queue == 0 || element == 0)
         return SQUEUE_ERR_INVALID_PAR;
+    
+    if(queue->available == 0) 
+        return SQUEUE_OVERFLOW;
      
     memcpy(queue->head, element, queue->element_size);   
      
@@ -30,6 +34,9 @@ int SQueue_Put(sQueue_t* queue, void* element)
         new_head = queue->base;
     
     queue->head = new_head;
+   
+    if(queue->available > 0) 
+        queue->available--;
   
     return 0;
 }
@@ -47,6 +54,8 @@ int SQueue_Get(sQueue_t* queue, void* element)
         new_tail = queue->base;
     
     queue->tail = new_tail;
+    
+    queue->available++;
        
     return 0;
 }
