@@ -30,6 +30,9 @@ TEST_GROUP_RUNNER(SQUEUE)
   RUN_TEST_CASE(SQUEUE, HeadWrapsAround);
   RUN_TEST_CASE(SQUEUE, TailWrapsAround);
   RUN_TEST_CASE(SQUEUE, ReturnsOverflowWhenQueueIsFull);
+  RUN_TEST_CASE(SQUEUE, ReturnsUnderflowWhenQueueIsEmpty);
+  RUN_TEST_CASE(SQUEUE, DeInitClearsAllValues);
+  RUN_TEST_CASE(SQUEUE, DeInitReturnErrorWithNullQueue);
 }
 
 TEST_SETUP(SQUEUE)
@@ -37,13 +40,17 @@ TEST_SETUP(SQUEUE)
     element = 5;
     buffer_element_size = sizeof(uint32_t);
     buffer_elements = sizeof(buffer) / buffer_element_size;
+    
+    SQueue_Init(&queue ,buffer,buffer_element_size,buffer_elements);
 }
 
 TEST_TEAR_DOWN(SQUEUE)
 {
     element = 0;
     buffer_element_size = 0xFF;
-    buffer_elements = 0xFF;
+    buffer_elements = 0xFF;   
+    
+    SQueue_DeInit(&queue);    
 }
 
 TEST(SQUEUE, InitReturnsNoErrorsWithSaneParameters)
@@ -61,7 +68,6 @@ TEST(SQUEUE, InitReturnsErrorWithInvalidParameters)
 
 TEST(SQUEUE, InitSetTheParametersCorrectly)
 {
-    SQueue_Init(&queue ,buffer,buffer_element_size,buffer_elements);
     TEST_ASSERT_EQUAL_PTR   (buffer             , queue.head         );
     TEST_ASSERT_EQUAL_PTR   (buffer             , queue.tail         );
     TEST_ASSERT_EQUAL_PTR   (buffer             , queue.base         );
@@ -142,3 +148,27 @@ TEST(SQUEUE, ReturnsOverflowWhenQueueIsFull)
     TEST_ASSERT_EQUAL(SQUEUE_OVERFLOW, SQueue_Put(&queue, (void *) &element));
 }
 
+TEST(SQUEUE, ReturnsUnderflowWhenQueueIsEmpty)
+{
+    uint32_t recovered = 0xABCD;
+       
+    TEST_ASSERT_EQUAL(SQUEUE_UNDERFLOW, SQueue_Get(&queue, (void *) &recovered));
+    TEST_ASSERT_EQUAL_UINT16(BUFFER_ELEMENTS,queue.available);
+    TEST_ASSERT_EQUAL_UINT16(0xABCD,recovered);    
+}
+
+TEST(SQUEUE, DeInitClearsAllValues)
+{
+    SQueue_DeInit(&queue);
+    
+    TEST_ASSERT_EQUAL_PTR   (0, queue.head         );
+    TEST_ASSERT_EQUAL_PTR   (0, queue.tail         );
+    TEST_ASSERT_EQUAL_PTR   (0, queue.base         );
+    TEST_ASSERT_EQUAL_UINT8 (0, queue.element_size );
+    TEST_ASSERT_EQUAL_UINT16(0, queue.elements     );
+}
+
+TEST(SQUEUE, DeInitReturnErrorWithNullQueue)
+{
+    TEST_ASSERT_EQUAL(SQUEUE_ERR_INVALID_PAR,SQueue_DeInit(0));
+}

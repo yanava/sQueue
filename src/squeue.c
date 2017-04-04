@@ -18,6 +18,21 @@ int SQueue_Init(sQueue_t* queue, void* buffer , uint8_t element_size, uint16_t e
 	return 0;
 }
 
+int SQueue_DeInit(sQueue_t* queue)
+{
+    if(queue == 0)
+        return SQUEUE_ERR_INVALID_PAR;
+        
+    queue->head = 0;
+    queue->tail = 0;
+    queue->base = 0;
+    queue->element_size = 0;
+    queue->elements = 0;
+    queue->available = 0;
+
+    return 0;
+}
+
 int SQueue_Put(sQueue_t* queue, void* element)
 {
     if(queue == 0 || element == 0)
@@ -46,6 +61,9 @@ int SQueue_Get(sQueue_t* queue, void* element)
     if(queue == 0 || element == 0)
         return SQUEUE_ERR_INVALID_PAR;
  
+    if(queue->available == queue->elements)
+        return SQUEUE_UNDERFLOW;
+ 
     memcpy(element, queue->tail, queue->element_size);
     
     uint8_t* new_tail = queue->tail + queue->element_size;
@@ -55,7 +73,16 @@ int SQueue_Get(sQueue_t* queue, void* element)
     
     queue->tail = new_tail;
     
-    queue->available++;
+    if(queue->available < queue->elements)
+        queue->available++;
        
     return 0;
+}
+
+int SQueue_Available(sQueue_t* queue)
+{
+    if(queue == 0)
+        return SQUEUE_ERR_INVALID_PAR;  
+
+    return (queue->available);
 }
