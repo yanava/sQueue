@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define BUFFER_ELEMENTS 5
+#define BUFFER_ELEMENTS 10
 
 TEST_GROUP(SQUEUE);
 
@@ -27,8 +27,7 @@ TEST_GROUP_RUNNER(SQUEUE)
   RUN_TEST_CASE(SQUEUE, PutReturnsErrorWithInvalidParameters  );
   RUN_TEST_CASE(SQUEUE, PutThenGetElementBack);
   RUN_TEST_CASE(SQUEUE, PutTwoAndGetTwoElementsBack);
-  RUN_TEST_CASE(SQUEUE, HeadWrapsAround);
-  RUN_TEST_CASE(SQUEUE, TailWrapsAround);
+  RUN_TEST_CASE(SQUEUE, HeadAndTailWrapAround);
   RUN_TEST_CASE(SQUEUE, ReturnsOverflowWhenQueueIsFull);
   RUN_TEST_CASE(SQUEUE, ReturnsUnderflowWhenQueueIsEmpty);
   RUN_TEST_CASE(SQUEUE, DeInitClearsAllValues);
@@ -112,28 +111,19 @@ TEST(SQUEUE, PutTwoAndGetTwoElementsBack)
     TEST_ASSERT_EQUAL_UINT8 (element, recovered);
 }
 
-TEST(SQUEUE, HeadWrapsAround)
-{
-    int i = 0;
-    
-    for(i = 0; i < BUFFER_ELEMENTS; i++)
-       SQueue_Put(&queue, (void *) &element);
-
-    TEST_ASSERT_EQUAL_PTR (buffer, queue.head);
-}
-
-TEST(SQUEUE, TailWrapsAround)
+TEST(SQUEUE, HeadAndTailWrapAround)
 {
     int i = 0;
     
     uint32_t recovered = 0;
     
     for(i = 0; i < BUFFER_ELEMENTS; i++)
-    {
+    {   
         SQueue_Put(&queue, (void *) &element);
         SQueue_Get(&queue, (void *) &recovered);
     }
-       
+     
+    TEST_ASSERT_EQUAL_PTR (buffer, queue.head);   
     TEST_ASSERT_EQUAL_PTR (buffer, queue.tail);
 }
 
@@ -143,8 +133,7 @@ TEST(SQUEUE, ReturnsOverflowWhenQueueIsFull)
     
     for(i = 0; i < BUFFER_ELEMENTS; i++)
        SQueue_Put(&queue, (void *) &element);
-
-    TEST_ASSERT_EQUAL_UINT16(0,queue.available);       
+      
     TEST_ASSERT_EQUAL(SQUEUE_OVERFLOW, SQueue_Put(&queue, (void *) &element));
 }
 
@@ -153,7 +142,6 @@ TEST(SQUEUE, ReturnsUnderflowWhenQueueIsEmpty)
     uint32_t recovered = 0xABCD;
        
     TEST_ASSERT_EQUAL(SQUEUE_UNDERFLOW, SQueue_Get(&queue, (void *) &recovered));
-    TEST_ASSERT_EQUAL_UINT16(BUFFER_ELEMENTS,queue.available);
     TEST_ASSERT_EQUAL_UINT16(0xABCD,recovered);    
 }
 

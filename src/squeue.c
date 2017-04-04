@@ -2,6 +2,7 @@
 
 #include "squeue.h"
 #include <string.h>
+#include <stdio.h>
 
 int SQueue_Init(sQueue_t* queue, void* buffer , uint8_t element_size, uint16_t element_count)
 {
@@ -13,7 +14,6 @@ int SQueue_Init(sQueue_t* queue, void* buffer , uint8_t element_size, uint16_t e
     queue->base = (uint8_t *) buffer;
     queue->element_size = element_size;
     queue->elements     = element_count;
-    queue->available    = element_count;
     
 	return 0;
 }
@@ -28,8 +28,6 @@ int SQueue_DeInit(sQueue_t* queue)
     queue->base = 0;
     queue->element_size = 0;
     queue->elements = 0;
-    queue->available = 0;
-
     return 0;
 }
 
@@ -37,22 +35,21 @@ int SQueue_Put(sQueue_t* queue, void* element)
 {
     if(queue == 0 || element == 0)
         return SQUEUE_ERR_INVALID_PAR;
-    
-    if(queue->available == 0) 
-        return SQUEUE_OVERFLOW;
-     
-    memcpy(queue->head, element, queue->element_size);   
      
     uint8_t* new_head = queue->head + queue->element_size;
+
+    if(new_head == queue->elements*queue->element_size + queue->base)
+        new_head = queue->base; 
     
-    if(new_head == (queue->elements-1) + queue->base)
-        new_head = queue->base;
+    if(new_head == queue->tail)
+        return SQUEUE_OVERFLOW;
+
+    else
+    {
+        memcpy(new_head, element, queue->element_size);
+        queue->head = new_head;    
+    }
     
-    queue->head = new_head;
-   
-    if(queue->available > 0) 
-        queue->available--;
-  
     return 0;
 }
 
@@ -61,28 +58,16 @@ int SQueue_Get(sQueue_t* queue, void* element)
     if(queue == 0 || element == 0)
         return SQUEUE_ERR_INVALID_PAR;
  
-    if(queue->available == queue->elements)
+    if(queue->tail == queue->head)
         return SQUEUE_UNDERFLOW;
- 
-    memcpy(element, queue->tail, queue->element_size);
-    
+
     uint8_t* new_tail = queue->tail + queue->element_size;
-    
-    if (new_tail == (queue->elements-1) + queue->base)
+
+    if (new_tail == queue->elements*queue->element_size + queue->base)
         new_tail = queue->base;
-    
+ 
+    memcpy(element, new_tail, queue->element_size);
     queue->tail = new_tail;
-    
-    if(queue->available < queue->elements)
-        queue->available++;
        
     return 0;
-}
-
-int SQueue_Available(sQueue_t* queue)
-{
-    if(queue == 0)
-        return SQUEUE_ERR_INVALID_PAR;  
-
-    return (queue->available);
 }
