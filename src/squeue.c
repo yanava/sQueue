@@ -71,3 +71,17 @@ int SQueue_Get(sQueue_t* queue, void* element)
        
     return 0;
 }
+
+int SQueue_AvailableSpace(sQueue_t* queue)
+{
+    if(queue == 0)
+        return SQUEUE_ERR_INVALID_PAR;
+
+    if(queue->head == queue->tail)
+        return (queue->elements - 1);
+    else if (queue->head > queue->tail)
+        return (queue->elements - (queue->head - queue->tail)/queue->element_size - 1);
+    else
+        return ((queue->tail - queue->head)/queue->element_size - 1);
+
+}

@@ -32,6 +32,8 @@ TEST_GROUP_RUNNER(SQUEUE)
   RUN_TEST_CASE(SQUEUE, ReturnsUnderflowWhenQueueIsEmpty);
   RUN_TEST_CASE(SQUEUE, DeInitClearsAllValues);
   RUN_TEST_CASE(SQUEUE, DeInitReturnErrorWithNullQueue);
+  RUN_TEST_CASE(SQUEUE, ReturnAvailableSpace);
+  RUN_TEST_CASE(SQUEUE, AvailableSpaceWrapAround);
 }
 
 TEST_SETUP(SQUEUE)
@@ -142,7 +144,7 @@ TEST(SQUEUE, ReturnsUnderflowWhenQueueIsEmpty)
     uint32_t recovered = 0xABCD;
        
     TEST_ASSERT_EQUAL(SQUEUE_UNDERFLOW, SQueue_Get(&queue, (void *) &recovered));
-    TEST_ASSERT_EQUAL_UINT16(0xABCD,recovered);    
+    TEST_ASSERT_EQUAL_UINT16(0xABCD, recovered);    
 }
 
 TEST(SQUEUE, DeInitClearsAllValues)
@@ -159,4 +161,31 @@ TEST(SQUEUE, DeInitClearsAllValues)
 TEST(SQUEUE, DeInitReturnErrorWithNullQueue)
 {
     TEST_ASSERT_EQUAL(SQUEUE_ERR_INVALID_PAR,SQueue_DeInit(0));
+}
+
+TEST(SQUEUE, ReturnAvailableSpace)
+{ 
+    int i = 0;
+
+    // Queue Filling
+    for (i = 0; i < (BUFFER_ELEMENTS - 1); i++)
+    {
+        TEST_ASSERT_EQUAL_UINT16(BUFFER_ELEMENTS-(1+i), SQueue_AvailableSpace(&queue));
+        SQueue_Put(&queue, (void *) &element);
+    }
+}
+
+TEST(SQUEUE, AvailableSpaceWrapAround)
+{
+    uint32_t recovered = 0;
+
+    int i = 0;
+
+    for (i = 0; i < 2*BUFFER_ELEMENTS; i++)
+    {
+        SQueue_Put(&queue, (void *) &element);
+        SQueue_Get(&queue, (void *) &recovered);
+
+        TEST_ASSERT_EQUAL_UINT16(BUFFER_ELEMENTS-1, SQueue_AvailableSpace(&queue));
+    }
 }

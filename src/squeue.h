@@ -27,6 +27,7 @@ int SQueue_Init(sQueue_t* queue, void* buffer, uint8_t element_size, uint16_t el
 int SQueue_DeInit(sQueue_t* queue);
 int SQueue_Put(sQueue_t* queue, void* element);
 int SQueue_Get(sQueue_t* queue, void* element);
+int SQueue_AvailableSpace(sQueue_t* queue);
 
 
 #endif  // __SFIFO_H_
